@@ -83,20 +83,26 @@ class WatcherService : IntentService("WatcherService") {
     private fun vibrate() {
         val v = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
 
+        val timings = arrayOf(
+            0L,
+            5000L,
+            2000L,
+            5000L,
+            2000L,
+            5000L,
+            2000L
+        ).toLongArray()
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             v.vibrate(
                 VibrationEffect.createWaveform(
-                    arrayOf(
-                        0L,
-                        5000L,
-                        2000L,
-                        5000L,
-                        2000L,
-                        5000L,
-                        2000L
-                    ).toLongArray(), -1
+                    timings, -1
                 )
             )
+        }
+        else {
+            @Suppress("deprecation")
+            v.vibrate(timings, -1)
         }
     }
 
