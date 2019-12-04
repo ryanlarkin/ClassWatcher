@@ -83,3 +83,6 @@ lint/generated/
 lint/outputs/
 lint/tmp/
 # lint/reports/
+
+# Don't store API keys in Git
+app/src/main/res/raw/app_config.xml
