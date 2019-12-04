@@ -1,7 +1,11 @@
 package uw.classwatcher
 
 import android.app.IntentService
+import android.content.Context
 import android.content.Intent
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -61,6 +65,7 @@ class WatcherService : IntentService("WatcherService") {
             } else {
                 multiClass(free)
             }
+            vibrate()
         }
     }
 
@@ -73,6 +78,26 @@ class WatcherService : IntentService("WatcherService") {
 
     private fun multiClass(schedules: List<TermCourseSchedule>) {
         showNotification("Classes available: " + schedules.joinToString(separator = ", ", transform = ::formatClass))
+    }
+
+    private fun vibrate() {
+        val v = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            v.vibrate(
+                VibrationEffect.createWaveform(
+                    arrayOf(
+                        0L,
+                        5000L,
+                        2000L,
+                        5000L,
+                        2000L,
+                        5000L,
+                        2000L
+                    ).toLongArray(), -1
+                )
+            )
+        }
     }
 
     private fun showNotification(text: String) {
