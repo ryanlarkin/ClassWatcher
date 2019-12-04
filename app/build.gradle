@@ -1,0 +1,66 @@
+apply plugin: 'com.android.application'
+
+apply plugin: 'kotlin-android'
+
+apply plugin: 'kotlin-android-extensions'
+
+android {
+    compileSdkVersion 29
+    buildToolsVersion "29.0.2"
+    defaultConfig {
+        applicationId "uw.classwatcher"
+        minSdkVersion 28
+        targetSdkVersion 29
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation 'androidx.appcompat:appcompat:1.1.0'
+    implementation 'androidx.core:core-ktx:1.1.0'
+    implementation "com.fasterxml.jackson.module:jackson-module-kotlin:2.9.10"
+    implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.9.10"
+    implementation group: 'javax.xml.stream', name: 'stax-api', version: '1.0-2'
+    // Requires https://github.com/endercrest/UWaterloo-API to be installed in the Maven Local repository
+    implementation group: 'com.endercrest.uwaterlooapi', name: 'UWaterlooAPI', version: '1.0.1'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'androidx.test:runner:1.2.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+}
+
+buildscript {
+    repositories {
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath "gradle.plugin.com.github.ramonwirsch:fopRenderer:0.2.0"
+    }
+}
+
+apply plugin: "com.github.ramonwirsch.FopRenderer"
+
+fopRenderer {
+    // groups of files to validated each against 1 schema (URL or local file)
+    schemas {
+        schemaGroupName { // used for task names
+            files = file('src/main/res/raw/app_config.xml') // or fileTree(dir: 'xmlDir', include: '*.xml')
+            offlineSchema = file('config-schema.xsd')
+            useInherentSchemas = false
+            // [default: false] uses xsi:schemaLocation tags or Doctype statements in the XML files for validation instead of forced schema
+        }
+        // ... as many different groups as you like
+    }
+}
+
+preBuild.dependsOn(validate)

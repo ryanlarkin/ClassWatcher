@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Created with Liquid Technologies Online Tools 1.0 (https://www.liquid-technologies.com) -->
+<xs:schema elementFormDefault="qualified"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:simpleType name="tokenType">
+        <xs:restriction base="xs:hexBinary">
+            <xs:length value="16"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:element name="app-config">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element maxOccurs="unbounded" name="class">
+                    <xs:complexType>
+                        <xs:attribute name="subject" type="xs:string" use="required"/>
+                        <xs:attribute name="catalogNumber" type="xs:unsignedShort" use="required"/>
+                        <xs:attribute name="classSection" type="xs:unsignedShort" use="required"/>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+            <xs:attribute name="token" type="tokenType" use="required"/>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>
