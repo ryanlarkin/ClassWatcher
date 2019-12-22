@@ -1,19 +1,19 @@
 package uw.classwatcher
 
 import android.annotation.SuppressLint
-import android.app.*
+import android.app.Activity
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.job.JobInfo
+import android.app.job.JobScheduler
 import android.content.ComponentName
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.os.SystemClock
+
 
 class MainActivity : Activity() {
-
-    private var alarmMgr: AlarmManager? = null
-    private lateinit var alarmIntent: PendingIntent
 
     @SuppressLint("ResourceType")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,22 +29,19 @@ class MainActivity : Activity() {
 
         createNotificationChannel()
 
-        alarmMgr = applicationContext.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        alarmIntent = Intent(applicationContext, WatcherService::class.java).let { intent ->
-            PendingIntent.getService(applicationContext, 0, intent, 0)
-        }
+        val serviceComponent = ComponentName(applicationContext, WatcherService::class.java)
 
-        // Do initial check immediately
-        Intent(this, WatcherService::class.java).also { intent ->
-            startService(intent)
-        }
+        // 15 minutes
+        val builder =
+            JobInfo.Builder(0, serviceComponent)
+                .setPeriodic(900000)
+                .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
+                .setRequiresDeviceIdle(false)
+                .setRequiresCharging(false)
 
-        alarmMgr?.setInexactRepeating(
-            AlarmManager.ELAPSED_REALTIME_WAKEUP,
-            SystemClock.elapsedRealtime() + AlarmManager.INTERVAL_FIFTEEN_MINUTES,
-            AlarmManager.INTERVAL_FIFTEEN_MINUTES,
-            alarmIntent
-        )
+        val jobScheduler: JobScheduler =
+            applicationContext.getSystemService(Context.JOB_SCHEDULER_SERVICE) as JobScheduler
+        jobScheduler.schedule(builder.build())
 
         finish()
     }

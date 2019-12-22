@@ -1,7 +1,8 @@
 package uw.classwatcher
 
 import android.app.IntentService
-import android.content.Intent
+import android.app.job.JobParameters
+import android.app.job.JobService
 import android.os.Build
 import android.os.Handler
 import android.widget.Toast
@@ -24,7 +25,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
  * A constructor is required, and must call the super [IntentService]
  * constructor with a name for the worker thread.
  */
-class WatcherService : IntentService("WatcherService") {
+class WatcherService : JobService() {
     private lateinit var api: UWaterlooAPI
     private lateinit var classes: Set<Course>
 
@@ -43,12 +44,16 @@ class WatcherService : IntentService("WatcherService") {
         classes = config.classes
     }
 
-    /**
-     * The IntentService calls this method from the default worker thread with
-     * the intent that started the service. When this method returns, IntentService
-     * stops the service, as appropriate.
-     */
-    override fun onHandleIntent(intent: Intent?) {
+    override fun onStartJob(params: JobParameters?): Boolean {
+        Thread { fetchClasses(params) }.also {
+            it.isDaemon = true
+            it.start()
+        }
+
+        return true
+    }
+
+    private fun fetchClasses(params: JobParameters?) {
         Handler(mainLooper).post {
             Toast.makeText(this, "Checking classes...", Toast.LENGTH_LONG).show()
         }
@@ -60,19 +65,29 @@ class WatcherService : IntentService("WatcherService") {
             }.filter { it.enrollmentTotal < it.enrollmentCapacity }
         }.getOrNull()
 
-        if (free != null && free.isNotEmpty()) {
+
+        if (free == null) {
+            showToast("Could not load schedule")
+        } else if (free.isNotEmpty()) {
             if (free.size == 1) {
+                showToast("Found class!")
                 singleClass(free.single())
             } else {
+                showToast("Found classes!")
                 multiClass(free)
             }
+        } else {
+            showToast("No open classes found")
         }
-        else {
-            Handler(mainLooper).post {
-                Toast.makeText(this, "No open classes found", Toast.LENGTH_LONG).show()
-            }
-        }
+
+        jobFinished(params, false)
     }
+
+    private fun showToast(text: String) = Handler(mainLooper).post {
+        Toast.makeText(this, text, Toast.LENGTH_LONG).show()
+    }
+
+    override fun onStopJob(params: JobParameters?): Boolean = true
 
     private fun formatClass(schedule: TermCourseSchedule) =
         schedule.subject + " " + schedule.catalogNumber + " (" + schedule.section + ")"
