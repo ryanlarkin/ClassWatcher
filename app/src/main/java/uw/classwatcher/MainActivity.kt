@@ -34,6 +34,7 @@ class MainActivity : Activity() {
             PendingIntent.getService(applicationContext, 0, intent, 0)
         }
 
+        // Do initial check immediately
         Intent(this, WatcherService::class.java).also { intent ->
             startService(intent)
         }
@@ -79,6 +80,6 @@ class MainActivity : Activity() {
             2000L,
             5000L,
             2000L
-        ).toLongArray();
+        ).toLongArray()
     }
 }

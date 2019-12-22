@@ -3,6 +3,7 @@ package uw.classwatcher
 import android.app.IntentService
 import android.content.Intent
 import android.os.Build
+import android.os.Handler
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -48,7 +49,9 @@ class WatcherService : IntentService("WatcherService") {
      * stops the service, as appropriate.
      */
     override fun onHandleIntent(intent: Intent?) {
-        Toast.makeText(this, "Checking classes...", Toast.LENGTH_LONG)
+        Handler(mainLooper).post {
+            Toast.makeText(this, "Checking classes...", Toast.LENGTH_LONG).show()
+        }
 
         val free = kotlin.runCatching {
             classes.map {
@@ -62,6 +65,11 @@ class WatcherService : IntentService("WatcherService") {
                 singleClass(free.single())
             } else {
                 multiClass(free)
+            }
+        }
+        else {
+            Handler(mainLooper).post {
+                Toast.makeText(this, "No open classes found", Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -84,7 +92,7 @@ class WatcherService : IntentService("WatcherService") {
             .setContentText(text)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
 
-        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             builder = builder.setVibrate(MainActivity.VIBRATION)
         }
 
