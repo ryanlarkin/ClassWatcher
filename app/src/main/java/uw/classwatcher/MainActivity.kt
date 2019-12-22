@@ -59,6 +59,9 @@ class MainActivity : Activity() {
             val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
                 description = descriptionText
             }
+            channel.enableVibration(true)
+            channel.vibrationPattern = VIBRATION
+
             // Register the channel with the system
             val notificationManager: NotificationManager =
                 getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -68,5 +71,14 @@ class MainActivity : Activity() {
 
     companion object {
         const val CHANNEL_ID = "avail"
+        val VIBRATION = arrayOf(
+            0L,
+            5000L,
+            2000L,
+            5000L,
+            2000L,
+            5000L,
+            2000L
+        ).toLongArray();
     }
 }

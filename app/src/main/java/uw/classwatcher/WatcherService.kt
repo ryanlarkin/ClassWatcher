@@ -1,11 +1,8 @@
 package uw.classwatcher
 
 import android.app.IntentService
-import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.os.VibrationEffect
-import android.os.Vibrator
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -20,6 +17,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
+
 
 /**
  * A constructor is required, and must call the super [IntentService]
@@ -65,12 +63,11 @@ class WatcherService : IntentService("WatcherService") {
             } else {
                 multiClass(free)
             }
-            vibrate()
         }
     }
 
     private fun formatClass(schedule: TermCourseSchedule) =
-        schedule.subject + " " + schedule.catalogNumber + "(" + schedule.section + ")"
+        schedule.subject + " " + schedule.catalogNumber + " (" + schedule.section + ")"
 
     private fun singleClass(schedule: TermCourseSchedule) {
         showNotification("Class available: " + formatClass(schedule))
@@ -80,38 +77,16 @@ class WatcherService : IntentService("WatcherService") {
         showNotification("Classes available: " + schedules.joinToString(separator = ", ", transform = ::formatClass))
     }
 
-    private fun vibrate() {
-        val v = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-
-        val timings = arrayOf(
-            0L,
-            5000L,
-            2000L,
-            5000L,
-            2000L,
-            5000L,
-            2000L
-        ).toLongArray()
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            v.vibrate(
-                VibrationEffect.createWaveform(
-                    timings, -1
-                )
-            )
-        }
-        else {
-            @Suppress("deprecation")
-            v.vibrate(timings, -1)
-        }
-    }
-
     private fun showNotification(text: String) {
-        val builder = NotificationCompat.Builder(this, MainActivity.CHANNEL_ID)
+        var builder = NotificationCompat.Builder(this, MainActivity.CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_background)
             .setContentTitle("Class Available!")
             .setContentText(text)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            builder = builder.setVibrate(MainActivity.VIBRATION)
+        }
 
         with(NotificationManagerCompat.from(this)) {
             // notificationId is a unique int for each notification that you must define
