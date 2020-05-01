@@ -2,6 +2,6 @@
 <app-config token="{Your Token Here}"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xsi:noNamespaceSchemaLocation="../../../../config-schema.xsd">
-    <class subject="CS" catalogNumber="452" classSection="8946"/>
+    <class subject="CS" catalogNumber="452" classSection="8946" term="1205"/>
     <class subject="CS" catalogNumber="138" classSection="1085"/>
 </app-config>
