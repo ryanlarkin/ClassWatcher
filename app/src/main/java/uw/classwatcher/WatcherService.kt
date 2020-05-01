@@ -119,7 +119,7 @@ class WatcherService : JobService() {
 
     data class Course(
         @JacksonXmlProperty(isAttribute = true) val subject: String, @JacksonXmlProperty(isAttribute = true) val catalogNumber: String,
-        @JacksonXmlProperty(isAttribute = true) val classSection: Int, @JacksonXmlProperty(isAttribute = true) val term: String = "1201"
+        @JacksonXmlProperty(isAttribute = true) val classSection: Int, @JacksonXmlProperty(isAttribute = true) val term: String = "1205"
     )
 
     @JacksonXmlRootElement(localName = "app-config")

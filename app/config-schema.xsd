@@ -15,6 +15,7 @@
                         <xs:attribute name="subject" type="xs:string" use="required"/>
                         <xs:attribute name="catalogNumber" type="xs:unsignedShort" use="required"/>
                         <xs:attribute name="classSection" type="xs:unsignedShort" use="required"/>
+                        <xs:attribute name="term" type="xs:unsignedShort" use="optional"/>
                     </xs:complexType>
                 </xs:element>
             </xs:sequence>
