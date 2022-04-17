@@ -30,8 +30,8 @@ dependencies {
     implementation "com.fasterxml.jackson.module:jackson-module-kotlin:2.9.10"
     implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.9.10"
     implementation group: 'javax.xml.stream', name: 'stax-api', version: '1.0-2'
-    // Requires https://github.com/endercrest/UWaterloo-API to be installed in the Maven Local repository
-    implementation group: 'com.endercrest.uwaterlooapi', name: 'UWaterlooAPI', version: '1.0.1'
+    implementation 'com.squareup.okhttp3:okhttp:4.9.3'
+    implementation 'com.google.code.gson:gson:2.9.0'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.2.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'

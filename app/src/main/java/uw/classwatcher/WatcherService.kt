@@ -5,11 +5,10 @@ import android.app.job.JobParameters
 import android.app.job.JobService
 import android.os.Build
 import android.os.Handler
+import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import com.endercrest.uwaterlooapi.UWaterlooAPI
-import com.endercrest.uwaterlooapi.terms.models.TermCourseSchedule
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -19,6 +18,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
+import io.swagger.client.models.ClassValue
 
 
 /**
@@ -26,7 +26,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
  * constructor with a name for the worker thread.
  */
 class WatcherService : JobService() {
-    private lateinit var api: UWaterlooAPI
+    private lateinit var api: API
     private lateinit var classes: Set<Course>
 
     override fun onCreate() {
@@ -40,7 +40,7 @@ class WatcherService : JobService() {
         val config =
             mapper.readValue<Config>(this.resources.openRawResource(R.raw.app_config))
 
-        api = UWaterlooAPI(config.token)
+        api = API(config.token)
         classes = config.classes
     }
 
@@ -58,12 +58,17 @@ class WatcherService : JobService() {
             Toast.makeText(this, "Checking classes...", Toast.LENGTH_LONG).show()
         }
 
-        val free = kotlin.runCatching {
-            classes.map {
-                api.termsAPI.getCouresSchedules(it.term, it.subject, it.catalogNumber)
-                    .data.single { data -> it.classSection == data.classNumber }
-            }.filter { it.enrollmentTotal < it.enrollmentCapacity }
-        }.getOrNull()
+        val free =
+            try {
+                classes.map {
+                    val c = api.getClassSchedules(it.term, it.subject, it.catalogNumber)
+                        .single { data -> it.classSection == data.classNumber }
+                    Pair(it, c)
+                }.filter { it.second.enrolledStudents!! < it.second.maxEnrollmentCapacity!! }
+            } catch (e: Throwable) {
+                Log.e("API Request", "Failure", e)
+                null
+            }
 
 
         if (free == null) {
@@ -89,15 +94,16 @@ class WatcherService : JobService() {
 
     override fun onStopJob(params: JobParameters?): Boolean = true
 
-    private fun formatClass(schedule: TermCourseSchedule) =
-        schedule.subject + " " + schedule.catalogNumber + " (" + schedule.section + ")"
+    private fun formatClass(courseInfo: Pair<Course, ClassValue>) =
+        courseInfo.first.subject + " " + courseInfo.first.catalogNumber + " (" + courseInfo.second.courseComponent + " " + courseInfo.second.classSection.toString()
+            .padStart(3, '0') + ")"
 
-    private fun singleClass(schedule: TermCourseSchedule) {
-        showNotification("Class available: " + formatClass(schedule))
+    private fun singleClass(classInfo: Pair<Course, ClassValue>) {
+        showNotification("Class available: " + formatClass(classInfo))
     }
 
-    private fun multiClass(schedules: List<TermCourseSchedule>) {
-        showNotification("Classes available: " + schedules.joinToString(separator = ", ", transform = ::formatClass))
+    private fun multiClass(classes: List<Pair<Course, ClassValue>>) {
+        showNotification("Classes available: " + classes.joinToString(separator = ", ", transform = ::formatClass))
     }
 
     private fun showNotification(text: String) {
@@ -118,8 +124,10 @@ class WatcherService : JobService() {
     }
 
     data class Course(
-        @JacksonXmlProperty(isAttribute = true) val subject: String, @JacksonXmlProperty(isAttribute = true) val catalogNumber: String,
-        @JacksonXmlProperty(isAttribute = true) val classSection: Int, @JacksonXmlProperty(isAttribute = true) val term: String = "1205"
+        @JacksonXmlProperty(isAttribute = true) val subject: String,
+        @JacksonXmlProperty(isAttribute = true) val catalogNumber: String,
+        @JacksonXmlProperty(isAttribute = true) val classSection: Int,
+        @JacksonXmlProperty(isAttribute = true) val term: String = "1205"
     )
 
     @JacksonXmlRootElement(localName = "app-config")
